@@ -2,10 +2,10 @@ name: Auto Unzip All Zips
 on:
   push:
     paths:
-      - '*.zip'  # 监听所有.zip文件的上传（有新zip就触发）
+      - '*.zip'
 
 permissions:
-  contents: write  # 确保有推送权限
+  contents: write
 
 jobs:
   unzip:
@@ -14,21 +14,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 拉取完整历史，避免推送冲突
+          fetch-depth: 0
 
-      - name: Unzip all zip files
+      - name: Unzip all zip files (auto-overwrite)
         run: |
-          # 循环解压当前目录下所有.zip文件（逐个处理，避免冲突）
           for zipfile in *.zip; do
-            # 检查是否存在zip文件（避免无文件时出错）
             if [ -f "$zipfile" ]; then
-              echo "解压文件: $zipfile"
-              unzip -q "$zipfile" -d ./  # -q 静默模式，减少输出
+              echo "解压并覆盖文件: $zipfile"
+              # 添加 -o 参数：强制覆盖现有文件，不提示
+              unzip -o -q "$zipfile" -d ./  
             fi
           done
 
       - name: Commit and push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto unzip all uploaded zip files"
+          commit_message: "Auto unzip (overwrite existing files)"
           file_pattern: "*"
